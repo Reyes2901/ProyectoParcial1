@@ -1,0 +1,120 @@
+{% extends 'base_client.html' %}
+
+{% block content %}
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+
+<div class="max-w-7xl mx-auto p-6">
+  <h2 class="text-3xl font-semibold text-gray-800 mb-6">Productos Disponibles</h2>
+
+  <!-- Buscador con micrófono -->
+  <div class="mb-6 relative md:w-1/3">
+    <input type="text" id="search" placeholder="Buscar productos..."
+      class="p-2 border border-gray-300 rounded-md w-full pr-10" />
+    <button id="voiceSearch" type="button" class="absolute top-2.5 right-3 text-gray-500 hover:text-blue-600 text-xl">
+      <i class='bx bx-microphone'></i>
+    </button>
+  </div>
+
+  <!-- Mensaje -->
+  <p id="noResultsMessage" class="text-red-600 text-sm mb-4 hidden">No se encontró ningún producto con ese nombre.</p>
+
+
+  <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for product in products %}
+    <div class="product-card bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
+      data-name="{{ product.name|lower }}" data-url="{{ url_for('client.add_to_cart', product_id=product.id) }}">
+      <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-t-lg">
+      <div class="p-4">
+        <h3 class="text-xl font-semibold text-gray-700">{{ product.name }}</h3>
+        <p class="text-gray-500 mb-2">Precio: Bs{{ product.price }}</p>
+        <p class="text-gray-600 text-sm">{{ product.description | truncate(100) }}</p>
+        <a href="{{ url_for('client.add_to_cart', product_id=product.id) }}"
+          class="buy-btn mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-300">
+          Agregar al carrito
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+  const searchInput = document.getElementById('search');
+  const voiceBtn = document.getElementById('voiceSearch');
+  const noResultsMsg = document.getElementById('noResultsMessage');
+  const productGrid = document.getElementById('productGrid');
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+
+    voiceBtn.addEventListener('click', () => recognition.start());
+
+    recognition.onstart = () => {
+      voiceBtn.innerHTML = "<i class='bx bxs-microphone bx-tada text-red-600'></i>";
+    };
+
+    recognition.onspeechend = () => {
+      recognition.stop();
+      voiceBtn.innerHTML = "<i class='bx bx-microphone'></i>";
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      searchInput.value = transcript;
+      filterProducts(transcript);
+    };
+  } else {
+    voiceBtn.disabled = true;
+    voiceBtn.title = "Tu navegador no soporta reconocimiento de voz";
+  }
+
+  function speak(text, callback = null) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      if (callback) utterance.onend = callback;
+      window.speechSynthesis.speak(utterance);
+    } else if (callback) {
+      callback();
+    }
+  }
+
+  function filterProducts(query) {
+    query = query.toLowerCase();
+    let foundProduct = null;
+
+    document.querySelectorAll('.product-card').forEach(card => {
+      const name = card.dataset.name;
+      const isMatch = name.includes(query);
+      card.style.display = isMatch ? 'block' : 'none';
+
+      if (isMatch && !foundProduct) {
+        foundProduct = card;
+      }
+    });
+
+    if (!foundProduct) {
+      noResultsMsg.classList.remove('hidden');
+      speak("No se encontró ningún producto con ese nombre.");
+    } else {
+      noResultsMsg.classList.add('hidden');
+      const productName = foundProduct.dataset.name;
+      const productURL = foundProduct.dataset.url;
+
+      speak(`¿Desea comprar el producto ${productName}?`, () => {
+        // Esperar confirmación por voz (opcional, pero ahora lo redirige automáticamente)
+        window.location.href = productURL;
+      });
+    }
+  }
+
+  // Búsqueda al escribir
+  searchInput.addEventListener('input', (e) => {
+    filterProducts(e.target.value);
+  });
+</script>
+{% endblock %}

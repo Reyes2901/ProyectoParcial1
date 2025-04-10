@@ -1,0 +1,12 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<h2>{% if product %}Editar{% else %}Agregar{% endif %} Producto</h2>
+<form method="post">
+  Nombre: <input type="text" name="name" value="{{ product.name if product else '' }}"><br>
+  Descripción: <textarea name="description">{{ product.description if product else '' }}</textarea><br>
+  Precio: <input type="number" step="0.01" name="price" value="{{ product.price if product else '' }}"><br>
+  Stock: <input type="number" name="stock" value="{{ product.stock if product else '' }}"><br>
+  Imagen URL: <input type="text" name="image_url" value="{{ product.image_url if product else '' }}"><br>
+  <button type="submit">Guardar</button>
+</form>
+{% endblock %}

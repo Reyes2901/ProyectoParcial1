@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Producto</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+  <header class="bg-blue-600 text-white p-4">
+    <h1 class="text-xl">Agregar Producto</h1>
+  </header>
+
+  <main class="container mx-auto my-8">
+    <form method="POST">
+      <label for="name">Nombre del Producto</label>
+      <input type="text" id="name" name="name" class="block w-full p-2 mb-4" required>
+
+      <label for="description">Descripción</label>
+      <textarea id="description" name="description" class="block w-full p-2 mb-4" required></textarea>
+
+      <label for="price">Precio</label>
+      <input type="number" id="price" name="price" class="block w-full p-2 mb-4" required>
+
+      <label for="stock">Cantidad en Stock</label>
+      <input type="number" id="stock" name="stock" class="block w-full p-2 mb-4" required>
+
+      <label for="image">URL de la Imagen</label>
+      <input type="text" id="image" name="image" class="block w-full p-2 mb-4">
+
+      <button type="submit" class="bg-blue-500 text-white p-2">Agregar
