@@ -37,5 +37,15 @@ interfaz intuitiva y responsive para navegadores.
 multiplataforma (iOS y Android). 
 
 
-venv\Scripts\activate
-https://www.mockaroo.com/
+
+- https://www.mockaroo.com/
+
+
+### instalar 
+
+
+- python -m venv \env
+- venv\Scripts\activate
+- pip install flask
+- pip install scikit-learn
+- pytho run.py
