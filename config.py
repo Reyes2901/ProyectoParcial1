@@ -1,6 +1,10 @@
-import os
+# config.py
+import psycopg2.extras
 
-class Config:
-    SECRET_KEY = 'clave_super_secreta'
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost/ecommerce_db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'postgres',
+    'password': '123456',
+    'dbname': 'ecommerce',
+    'cursor_factory': psycopg2.extras.RealDictCursor
+}

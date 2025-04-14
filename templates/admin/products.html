@@ -3,6 +3,15 @@
 {% block content %}
 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Productos</h2>
 
+<!-- Buscador con reconocimiento de voz -->
+<div class="flex items-center mb-6">
+  <input id="searchInput" type="text" placeholder="Buscar producto..."
+    class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-sm mr-4" />
+  <button id="startSearchVoice" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
+    🎙️ Buscar por voz
+  </button>
+</div>
+
 <!-- Botón para añadir nuevo producto -->
 <a href="{{ url_for('admin.add_product') }}"
   class="inline-block bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 mb-4">
@@ -20,11 +29,11 @@
         <th class="py-3 px-6 text-sm font-semibold text-gray-600">Acciones</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="productList">
       {% for p in products %}
-      <tr class="border-t border-gray-200 hover:bg-gray-50">
+      <tr class="border-t border-gray-200 hover:bg-gray-50 product-row">
         <td class="py-4 px-6">{{ p.name }}</td>
-        <td class="py-4 px-6 text-gray-700">${{ p.price }}</td>
+        <td class="py-4 px-6 text-gray-700">Bs{{ p.price }}</td>
         <td class="py-4 px-6">{{ p.stock }}</td>
         <td class="py-4 px-6 text-center">
           <a href="{{ url_for('admin.edit_product', id=p.id) }}"
@@ -37,4 +46,46 @@
     </tbody>
   </table>
 </div>
+
+<script>
+  // Función para iniciar el reconocimiento de voz
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = 'es-ES';
+
+  document.getElementById('startSearchVoice').addEventListener('click', function () {
+    recognition.start();
+  });
+
+  recognition.onresult = function (event) {
+    const lastResult = event.results[event.results.length - 1];
+    const speech = lastResult[0].transcript.toLowerCase();
+    document.getElementById('searchInput').value = speech;
+
+    // Filtrar las filas según el término de búsqueda
+    filterProducts(speech);
+  };
+
+  recognition.onerror = function (event) {
+    console.error('Error en el reconocimiento de voz:', event.error);
+  };
+
+  // Filtrar productos
+  function filterProducts(searchTerm) {
+    const rows = document.querySelectorAll('.product-row');
+    rows.forEach(row => {
+      const productName = row.querySelector('td').textContent.toLowerCase();
+      if (productName.includes(searchTerm.toLowerCase())) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  // Filtrar productos con el campo de búsqueda
+  document.getElementById('searchInput').addEventListener('input', function () {
+    filterProducts(this.value);
+  });
+</script>
+
 {% endblock %}

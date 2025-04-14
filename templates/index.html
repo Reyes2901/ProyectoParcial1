@@ -6,36 +6,104 @@
 <div class="max-w-7xl mx-auto p-6">
   <h2 class="text-3xl font-semibold text-gray-800 mb-6">Productos Disponibles</h2>
 
-  <!-- Buscador con micrófono -->
-  <div class="mb-6 relative md:w-1/3">
-    <input type="text" id="search" placeholder="Buscar productos..."
-      class="p-2 border border-gray-300 rounded-md w-full pr-10" />
-    <button id="voiceSearch" type="button" class="absolute top-2.5 right-3 text-gray-500 hover:text-blue-600 text-xl">
-      <i class='bx bx-microphone'></i>
-    </button>
-  </div>
+<!-- Micrófono flotante estilo asistente virtual -->
+<div
+  class="fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer hover:bg-blue-700">
+  <i class="bx bx-microphone text-3xl" id="voiceSearch"></i>
+</div>
 
-  <!-- Mensaje -->
-  <p id="noResultsMessage" class="text-red-600 text-sm mb-4 hidden">No se encontró ningún producto con ese nombre.</p>
+<!-- Buscador con micrófono -->
+<div class="mb-6 relative md:w-1/3">
+  <input type="text" id="search" placeholder="Buscar productos..."
+    class="p-2 border border-gray-300 rounded-md w-full pr-10" />
+  <button id="voiceSearch" type="button" class="absolute top-2.5 right-3 text-gray-500 hover:text-blue-600 text-xl">
+    <i class='bx bx-microphone'></i>
+  </button>
+</div>
 
 
-  <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    {% for product in products %}
-    <div class="product-card bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
-      data-name="{{ product.name|lower }}" data-url="{{ url_for('client.add_to_cart', product_id=product.id) }}">
-      <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-t-lg">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold text-gray-700">{{ product.name }}</h3>
-        <p class="text-gray-500 mb-2">Precio: Bs{{ product.price }}</p>
-        <p class="text-gray-600 text-sm">{{ product.description | truncate(100) }}</p>
-        <a href="{{ url_for('client.add_to_cart', product_id=product.id) }}"
-          class="buy-btn mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-300">
-          Agregar al carrito
-        </a>
-      </div>
+<!-- Mensaje de error de búsqueda -->
+<p id="noResultsMessage" class="hidden text-white bg-red-500 p-4 rounded-lg shadow-md flex items-center gap-3 mb-4">
+  <i class="bx bx-x-circle text-2xl"></i>
+  <span>No se encontró ningún producto con ese nombre.</span>
+</p>
+
+
+<div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  {% for product in products %}
+  <div class="product-card bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
+    data-name="{{ product.name|lower }}" data-price="{{ product.price }}"
+    data-url="{{ url_for('client.add_to_cart', product_id=product.id) }}">
+    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-t-lg">
+    <div class="p-4">
+      <h3 class="text-xl font-semibold text-gray-700">{{ product.name }}</h3>
+      <p class="text-gray-500 mb-2">Precio: Bs{{ product.price }}</p>
+      <p class="text-gray-600 text-sm">{{ product.description | truncate(100) }}</p>
+      <a href="{{ url_for('client.add_to_cart', product_id=product.id) }}"
+        class="buy-btn mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-300 add-to-cart-btn">
+        Agregar al carrito
+      </a>
     </div>
-    {% endfor %}
   </div>
+  {% endfor %}
+</div>
+
+<script>
+  // Solicitar permiso de notificación al navegador
+  document.addEventListener('DOMContentLoaded', function () {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  });
+
+  // Escuchar el clic en el botón de "Agregar al carrito"
+  const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+  addToCartButtons.forEach(button => {
+    button.addEventListener('click', function (event) {
+      event.preventDefault(); // Prevenir la acción predeterminada
+
+      // Obtener los datos del producto desde el DOM
+      const productCard = button.closest('.product-card');
+      const productName = productCard.dataset.name;
+      const productPrice = productCard.dataset.price;
+      const productURL = button.href;  // URL del carrito
+
+      // Hacer la solicitud para agregar el producto al carrito
+      fetch(productURL, {
+        method: 'GET', // O 'POST' dependiendo de tu lógica de backend
+      })
+        .then(response => {
+          if (response.ok) {
+            // Mostrar notificación si la solicitud es exitosa
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("Producto agregado", {
+                body: `El producto "${productName}" con precio Bs${productPrice} se ha agregado correctamente al carrito.`,
+                icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+              });
+            }
+          } else {
+            // Manejo de error
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("Error al agregar al carrito", {
+                body: `Hubo un problema al agregar el producto "${productName}" al carrito.`,
+                icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+              });
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Error de red", {
+              body: `Hubo un problema de red al agregar el producto "${productName}" al carrito. Intenta nuevamente.`,
+              icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+            });
+          }
+        });
+    });
+  });
+</script>
+
 
 </div>
 
@@ -100,6 +168,10 @@
     if (!foundProduct) {
       noResultsMsg.classList.remove('hidden');
       speak("No se encontró ningún producto con ese nombre.");
+           // Recargar la página después de que termine de hablar
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } else {
       noResultsMsg.classList.add('hidden');
       const productName = foundProduct.dataset.name;

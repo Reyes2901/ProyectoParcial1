@@ -47,5 +47,10 @@ multiplataforma (iOS y Android).
 - python -m venv \env
 - venv\Scripts\activate
 - pip install flask
+- pip install psycopg2-binary
 - pip install scikit-learn
 - pytho run.py
+
+
+postgres
+123456
